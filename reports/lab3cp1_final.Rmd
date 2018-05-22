@@ -1,0 +1,85 @@
+---
+title: "lab3cp1"
+author: "José Ferdinandy Silva Chagas"
+date: "21 de maio de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(boot)
+library(resample)
+library(lubridate)
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## Qual é a taxa de cliques geral diária? Como isso varia entre os grupos?
+
+
+```{r}
+buscas = read_csv(here::here("data/search_data.csv"))
+
+amostra = sample_n(buscas,1000)
+
+buscas = buscas %>% 
+    mutate(date = date(session_start_date))
+
+grupoA = buscas %>% filter(group == "a")
+grupoB = buscas %>% filter(group == "b")
+
+
+summary(grupoA$num_clicks)
+summary(grupoB$num_clicks)
+
+
+```
+
+# Resposta
+
+```{r}
+
+mean.num_clicks = bootstrap(amostra, mean(num_clicks), R=2000) %>%
+    CI.bca(probs = c(.025,.975))
+mean.num_clicks
+
+amostraA = amostra %>% filter(group== "a")
+
+amostraB = amostra %>% filter(group== "b")
+
+mean.num_clicksA = bootstrap(amostraA, mean(num_clicks), R=2000) %>%
+    CI.bca(probs = c(.025,.975))
+mean.num_clicksA
+
+mean.num_clicksB = bootstrap(amostraB, mean(num_clicks), R=2000) %>%
+    CI.bca(probs = c(.025,.975))
+mean.num_clicksB
+
+```
+
+## Quais resultados as pessoas tendem a tentar primeiro? Como isso muda no dia-a-dia?
+
+```{r}
+#Resposta 1
+amostra_nn = amostra %>% filter(!is.na(first_click))
+sum.first_click = bootstrap(amostra_nn, mean(first_click), R=2000) %>%
+    CI.bca(probs = c(.025,.975))
+sum.first_click
+
+
+
+```
+
+## Qual é a taxa de resultados zero no geral? Como isso varia entre os grupos?
+
+```{r}
+
+amostrazero = amostra %>% filter(results==0)
+
+count.results = bootstrap(amostrazero, mean(results), R=2000) %>%
+    CI.bca(probs = c(.025,.975))
+count.results
+
+```
+
+
